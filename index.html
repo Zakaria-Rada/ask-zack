@@ -13,8 +13,14 @@
     <script>
         function ask() {
             var prompt = $('#userInput').val();
-            $.post('/ask', { prompt: prompt }, function(data) {
-                $('#response').html(data.response);
+            $.ajax({
+                url: '/ask',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ prompt: prompt }),
+                success: function(data) {
+                    $('#response').html(data.response);
+                }
             });
         }
     </script>
