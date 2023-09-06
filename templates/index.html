@@ -1,28 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ask Zack Chatbot</title>
+    <meta charset="UTF-8">
+    <title>Ask Zack</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Ask Zack Chatbot</h1>
-    <input type="text" id="userInput" placeholder="Ask Me Anything..." />
-    <button onclick="ask()">Ask</button>
+    <h1>Ask Zack</h1>
+    <form id="askForm">
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question">
+        <input type="submit" value="Ask">
+    </form>
     <div id="response"></div>
 
     <script>
-        function ask() {
-            var prompt = $('#userInput').val();
-            $.ajax({
-                url: '/ask',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ prompt: prompt }),
-                success: function(data) {
-                    $('#response').html(data.response);
-                }
+        $(document).ready(function() {
+            $('#askForm').submit(function(e) {
+                e.preventDefault();
+
+                let question = $('#question').val();
+
+                $.ajax({
+                    url: '/ask',
+                    method: 'POST',
+                    data: {question: question},
+                    success: function(data) {
+                        $('#response').html('<p>' + data.response + '</p>');
+                    },
+                    error: function(err) {
+                        $('#response').html('<p>Error: ' + err.responseJSON.error + '</p>');
+                    }
+                });
             });
-        }
+        });
     </script>
 </body>
 </html>
