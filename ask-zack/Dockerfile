@@ -50,7 +50,7 @@ RUN python3 -m venv /home/appuser/venv
 ENV PATH="/home/appuser/venv/bin:$PATH"
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn
+RUN pip install fastapi uvicorn python-multipart
 
 # Switch back to non-root user
 USER appuser
