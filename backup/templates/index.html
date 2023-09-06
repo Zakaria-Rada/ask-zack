@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zack - AI LLAMA2 </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #promptInput {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 15px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+    <script>
+        async function runCommand() {
+            const prompt = document.getElementById('promptInput').value;
+
+            try {
+                const response = await fetch('http://172.27.240.11:5050/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('output').innerText = data.response || data.error;
+            } catch (error) {
+                document.getElementById('output').innerText = 'Error: ' + error;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Ask AI Zack Anything</h1>
+    <input id="promptInput" type="text" placeholder="Enter your prompt" />
+    <button onclick="runCommand()">Run</button>
+    <h2>Output:</h2>
+    <pre id="output"></pre>
+</body>
+</html>

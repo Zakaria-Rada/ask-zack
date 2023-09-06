@@ -1,34 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Run Docker Command</title>
-    <script>
-        async function runCommand() {
-            const prompt = document.getElementById('promptInput').value;
-
-            try {
-                const response = await fetch('http://localhost:5050/run', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ prompt: prompt })
-                });
-
-                const data = await response.json();
-                
-                document.getElementById('output').innerText = data.response || data.error;
-            } catch (error) {
-                document.getElementById('output').innerText = 'Error: ' + error;
-            }
-        }
-    </script>
+    <meta charset="UTF-8">
+    <title>Zack-Chatboot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Run Docker Command</h1>
-    <input id="promptInput" type="text" placeholder="Enter your prompt" />
-    <button onclick="runCommand()">Run</button>
-    <h2>Output:</h2>
-    <pre id="output"></pre>
+
+    <h1 style="font-size: 36px;">Chatbot Interface</h1>
+    <form id="chat-form">
+        <label for="prompt" style="font-size: 24px;">Prompt:</label>
+        <input type="text" id="prompt" name="prompt">
+        <button type="submit">Submit</button>
+    </form>
+    <div id="response" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+    </div>
+
+    <script>
+        $("#chat-form").submit(function(e) {
+            e.preventDefault();
+            let prompt = $("#prompt").val();
+            $.post("/run", { prompt: prompt }, function(data) {
+                $("#response").text(data.response);
+            });
+        });
+    </script>
 </body>
 </html>
