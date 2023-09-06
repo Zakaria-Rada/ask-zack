@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import subprocess
-import os
 
 app = Flask(__name__)
-
 
 @app.route('/')
 def home():
@@ -16,7 +14,14 @@ def ask():
     docker_command = f"docker run -e PROMPT=\"{prompt}\" zack-llama2:0.0.1"
 
     try:
-        result = subprocess.run(docker_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(
+            docker_command,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         output = result.stdout
     except subprocess.CalledProcessError as e:
         output = f"An error occurred: {str(e)}"
