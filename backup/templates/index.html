@@ -41,7 +41,7 @@
             const prompt = document.getElementById('promptInput').value;
 
             try {
-                const response = await fetch(':5050/run', {
+                const response = await fetch('localhost:5050/run', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
