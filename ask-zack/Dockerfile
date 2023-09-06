@@ -38,7 +38,7 @@ COPY --from=builder /llama.cpp /home/appuser/llama.cpp
 
 # Install Python and other dependencies
 USER root
-RUN apt-get update && apt-get install -y python3 python3-pip
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
 
 # Create a virtual environment
 RUN python3 -m venv /home/appuser/venv
