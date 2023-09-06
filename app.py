@@ -1,30 +1,32 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, request, jsonify
 import subprocess
+import json
 
 app = Flask(__name__)
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-@app.route('/ask', methods=['POST'])
-def ask():
-    question = request.form['question']
-
+def run_docker_command(prompt):
     try:
         completed_process = subprocess.run(
-            ["docker", "run", "-e", f'PROMPT={question}', "zack-llama2:0.0.1"],
-            capture_output=True, text=True
+            ["docker", "run", "-e", f'PROMPT={prompt}', "zack-llama2:0.0.1"],
+            capture_output=True,
+            text=True
         )
 
         output = completed_process.stdout
-        return jsonify({"response": output})
+        return {"response": output}
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return {"error": str(e)}
 
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5050)
+@app.route('/run', methods=['POST'])
+def run_command():
+    data = request.get_json()
+    prompt = data.get('prompt', '')
+    result = run_docker_command(prompt)
+    return jsonify(result)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5050)
