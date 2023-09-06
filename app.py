@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import subprocess
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 
 def run_docker_command(prompt):
@@ -27,4 +29,4 @@ def run_command():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5050)
+    app.run(host='0.0.0.0', port=5050, debug=True)
