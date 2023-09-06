@@ -1,7 +1,8 @@
-# Stage 1: Builder
-ARG MODEL=llama-2-13b-chat.ggmlv3.q4_0.bin
+# The builder stage
 FROM ubuntu:22.04 AS builder
-ARG MODEL
+
+# Arguments
+ARG MODEL=llama-2-13b-chat.ggmlv3.q4_0.bin
 
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -11,45 +12,49 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git && cd llama.cpp && make
 
 WORKDIR /llama.cpp
 
-ENV MODEL=$MODEL
 RUN wget "https://huggingface.co/TheBloke/Llama-2-13B-chat-GGML/resolve/main/${MODEL}"
 
-# Stage 2: Final
+# The final stage
 FROM ubuntu:22.04 AS final
 
-ARG UID=10001
+# Arguments
 ARG MODEL
+ARG UID=10001
 
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-venv
-
+# Add non-root user
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
+    --home "/home/appuser" \
     --shell "/sbin/nologin" \
-    --no-create-home \
     --uid "${UID}" \
     appuser
 
+# Switch to non-root user
 USER appuser
 
-COPY --from=builder /llama.cpp /llama.cpp
+# Copy from builder
+COPY --from=builder /llama.cpp /home/appuser/llama.cpp
 
-# Create virtual environment and activate it
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Install Python and other dependencies
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip
+
+# Create a virtual environment
+RUN python3 -m venv /home/appuser/venv
+ENV PATH="/home/appuser/venv/bin:$PATH"
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn python-multipart
+RUN pip install fastapi uvicorn
 
-COPY ./app /app
-WORKDIR /app
+# Switch back to non-root user
+USER appuser
 
-ENV MODEL=$MODEL
+# Copy your FastAPI app into the container
+COPY ./app /home/appuser/app
 
-# Expose port
-EXPOSE 2023
+# Set working directory
+WORKDIR /home/appuser/app
 
-# Run Uvicorn
+# Command to run
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "2023"]
