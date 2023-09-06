@@ -4,14 +4,18 @@ FROM ubuntu:22.04 AS builder
 # Arguments
 ARG MODEL=llama-2-13b-chat.ggmlv3.q4_0.bin
 
+# Install dependencies
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y build-essential git wget
 
+# Clone repository and build
 RUN git clone https://github.com/ggerganov/llama.cpp.git && cd llama.cpp && make
 
+# Set working directory
 WORKDIR /llama.cpp
 
+# Download model
 RUN wget "https://huggingface.co/TheBloke/Llama-2-13B-chat-GGML/resolve/main/${MODEL}"
 
 # The final stage
@@ -30,30 +34,32 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-# Copy from builder
-COPY --from=builder /llama.cpp /home/appuser/llama.cpp
-
-# Install Python and other dependencies as root
+# Switch to root to change ownership
 USER root
+
+# Install Python and other dependencies
 RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
 
 # Create a virtual environment
 RUN python3 -m venv /home/appuser/venv
 
-# Activate virtual environment
-ENV PATH="/home/appuser/venv/bin:$PATH"
+# Change ownership of home directory
+RUN chown -R appuser:appuser /home/appuser
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn
-
-# Change ownership of the virtual environment to appuser
-RUN chown -R appuser:appuser /home/appuser/venv
+RUN /home/appuser/venv/bin/pip install fastapi uvicorn
 
 # Switch back to non-root user
 USER appuser
 
+# Copy from builder
+COPY --from=builder /llama.cpp /home/appuser/llama.cpp
+
 # Copy your FastAPI app into the container
 COPY ./app /home/appuser/app
+
+# Set environment variables for the virtual environment
+ENV PATH="/home/appuser/venv/bin:$PATH"
 
 # Set working directory
 WORKDIR /home/appuser/app
