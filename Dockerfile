@@ -15,6 +15,12 @@ RUN wget "https://huggingface.co/TheBloke/Llama-2-13B-chat-GGML/resolve/main/${M
 FROM ubuntu:22.04 AS final
 ARG MODEL
 
+# Install Python and pip as root user
+RUN apt-get update && apt-get install -y python3 python3-pip
+
+# Install FastAPI and Uvicorn as root user
+RUN pip3 install fastapi uvicorn
+
 # Create a user
 ARG UID=10001
 RUN adduser \
@@ -26,16 +32,11 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-USER appuser
-
-# Install Python and pip
-RUN apt-get update && apt-get install -y python3 python3-pip
-
-# Install FastAPI and Uvicorn
-RUN pip3 install fastapi uvicorn
-
-# Copy llama.cpp and model from the builder
+# Copy llama.cpp and model from the builder as root user
 COPY --from=builder /llama.cpp /llama.cpp
+
+# Switch to non-root user
+USER appuser
 
 # Copy FastAPI app
 COPY ./app /app
@@ -43,4 +44,4 @@ COPY ./app /app
 WORKDIR /llama.cpp
 
 # Run Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "2023"]
