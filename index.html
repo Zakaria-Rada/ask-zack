@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Llama Model Generator</title>
+    <script>
+        async function submitPrompt() {
+            console.log("Submitting prompt..."); 
+            const promptText = document.getElementById('prompt').value;
+            const response = await fetch('/generate/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "prompt": promptText })
+            });
+            const data = await response.json();
+            document.getElementById('result').innerText = data.generated_text;
+        }
+    </script>
+</head>
+<body>
+    <h1>Llama Model Generator</h1>
+    <form onsubmit="submitPrompt(); return false;">
+        <label for="prompt">Enter your prompt:</label><br>
+        <input type="text" id="prompt" name="prompt"><br>
+        <input type="submit" value="Generate">
+    </form>
+    <h2>Generated Text</h2>
+    <div id="result"></div>
+</body>
+</html>

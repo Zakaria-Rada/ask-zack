@@ -1,0 +1,40 @@
+# Private local files
+*.csv
+*.log
+*.pickle
+*.parquet
+*.xlsx
+
+# Mac/OSX
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+*.egg-info/
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+
+# Test
+container/test*
+*.xml
+*.coverage
+
+.idea/
+*.iml
+
+# files
+llama.cpp/*
+llama-2-13b-chat.ggmlv3.q4_0.bin
