@@ -21,6 +21,9 @@ FROM ubuntu:22.04 AS final
 ARG MODEL
 ARG UID=10001
 
+# Install Python and other dependencies
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+
 # Add non-root user
 RUN adduser \
     --disabled-password \
@@ -30,25 +33,23 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+# Create a virtual environment as root
+RUN python3 -m venv /home/appuser/venv
+
+# Change the ownership of the virtual environment to the non-root user
+RUN chown -R appuser:appuser /home/appuser/venv
+
 # Switch to non-root user
 USER appuser
 
-# Copy from builder
-COPY --from=builder /llama.cpp /home/appuser/llama.cpp
-
-# Install Python and other dependencies
-USER root
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
-
-# Create a virtual environment
-RUN python3 -m venv /home/appuser/venv
+# Activate the virtual environment
 ENV PATH="/home/appuser/venv/bin:$PATH"
 
 # Install FastAPI and Uvicorn
 RUN pip install fastapi uvicorn
 
-# Switch back to non-root user
-USER appuser
+# Copy from builder
+COPY --from=builder /llama.cpp /home/appuser/llama.cpp
 
 # Copy your FastAPI app into the container
 COPY ./app /home/appuser/app
