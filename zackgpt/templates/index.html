@@ -12,9 +12,7 @@
             margin-top: 20px;
             border-radius: 8px;
             background-color: #f9f9f9;
-        }
-        pre {
-            white-space: pre-wrap;
+            white-space: pre-line;
         }
     </style>
 </head>
@@ -37,25 +35,18 @@
     </div>
 
     <script>
-        function typeWriter(text, el) {
-            let i = 0;
-            const speed = 50;
-            function write() {
-                if (i < text.length) {
-                    el.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(write, speed);
-                }
-            }
-            write();
-        }
-
         $("#chat-form").submit(function(e) {
             e.preventDefault();
             let prompt = $("#prompt").val();
-            $("#response").html('<strong>Output:</strong><pre id="realtime"></pre>');
-            $.post("/run", { prompt: prompt }, function(data) {
-                typeWriter(data.response, document.getElementById("realtime"));
+            $.ajax({
+                url: '/run',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ prompt: prompt }),
+                dataType: 'json',
+                success: function(data) {
+                    $("#response").html('<strong>Output:</strong><pre>' + data.response + '</pre>');
+                }
             });
         });
     </script>
