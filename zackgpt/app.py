@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import subprocess
 import json
 
-
 def run_docker_command(prompt):
     try:
         completed_process = subprocess.run(
@@ -27,6 +26,7 @@ def run():
     prompt = request.json.get('prompt', None)
     result = run_docker_command(prompt)
     return jsonify(result)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=6060)
