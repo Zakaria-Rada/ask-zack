@@ -11,7 +11,7 @@ warnings.simplefilter("ignore")
 torch.cuda.empty_cache()
 
 # Set the GPU device
-GPU_DEVICE = 1
+GPU_DEVICE = 1  # 0 or 1 depending on which GPU you want to use
 
 # Set the absolute path to the saved model
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current directory's absolute path
@@ -25,13 +25,13 @@ TOKENIZER = AutoTokenizer.from_pretrained(MODEL_SAVE_PATH)
 MODEL = MODEL.to(f'cuda:{GPU_DEVICE}')
 
 # Create a text generation pipeline only once
-GENERATOR = pipeline("text-generation", model=MODEL, tokenizer=TOKENIZER, device=GPU_DEVICE)  # Add device here as well
+GENERATOR = pipeline("text-generation", model=MODEL, tokenizer=TOKENIZER, device=GPU_DEVICE)
 
 
 def generate_text(prompt):
     """Generate text using the pre-loaded model."""
     # Generate text using the provided prompt
-    output = GENERATOR(prompt, max_length=200, num_return_sequences=1)  # Reduced max_length to 200 as an example
+    output = GENERATOR(prompt, max_length=200, num_return_sequences=1)
     generated_text = output[0]['generated_text']
 
     # Remove the initial user's prompt from the generated text
@@ -43,7 +43,7 @@ def generate_text(prompt):
 if __name__ == "__main__":
     print("Chatbot is ready. Type 'exit' to end the conversation.\n")
     while True:
-        # User's message
+
         user_prompt = input("You: ")
 
         if user_prompt.strip().lower() == "exit":
