@@ -49,5 +49,5 @@ if __name__ == "__main__":
 
         # Chatbot's response
         response = generate_text(user_prompt)
-        print("Bot: ", end='')
+        print("ZackGPT: ", end='')
         print_real_time(response.strip())
