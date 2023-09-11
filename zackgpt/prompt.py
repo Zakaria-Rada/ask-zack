@@ -7,7 +7,7 @@ import torch
 warnings.simplefilter("ignore")
 
 # Set the absolute path to the saved model
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current directory's absolute path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
 MODEL_SAVE_PATH = os.path.join(BASE_DIR, "results", "llama-2-7b-miniguanaco")
 
 # Load saved model and tokenizer from the local directory only once
@@ -28,7 +28,7 @@ GENERATOR = pipeline("text-generation", model=MODEL, tokenizer=TOKENIZER, device
 def generate_text(prompt):
     """Generate text using the pre-loaded model."""
     # Generate text using the provided prompt
-    output = GENERATOR(prompt, max_length=300, num_return_sequences=1)  # Reduced max_length for speed
+    output = GENERATOR(prompt, max_length=300, num_return_sequences=1)
     generated_text = output[0]['generated_text']
 
     # Remove the initial user's prompt from the generated text
