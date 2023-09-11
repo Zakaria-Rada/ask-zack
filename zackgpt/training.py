@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     max_seq_length = None
     packing = False
-    device_map = {"": 0}
+    device_map = {"": 1}
 
     save_directory = os.path.join(output_dir, new_model)
 
