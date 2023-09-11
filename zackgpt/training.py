@@ -1,54 +1,61 @@
-
-# Install required packages
-# !pip install -q accelerate==0.21.0 peft==0.4.0 bitsandbytes==0.40.2 transformers==4.31.0 trl==0.4.7
-
+import os
 import torch
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
-    TrainingArguments
+    TrainingArguments,
 )
 from peft import LoraConfig
 from trl import SFTTrainer
 
 # Configuration parameters
-# Model related
-model_name = "NousResearch/llama-2-7b-chat-hf"  # Original model
-dataset_name = "mlabonne/guanaco-llama2-1k"     # Training dataset
-new_model = "llama-2-7b-miniguanaco"            # Name for the fine-tuned model
 
-# QLoRA specific parameters
-lora_r = 64          # LoRA attention dimension
-lora_alpha = 16      # Alpha parameter for LoRA scaling
-lora_dropout = 0.1   # Dropout probability for LoRA layers
+# The model that you want to train from the Hugging Face hub
+model_name = "NousResearch/llama-2-7b-chat-hf"
 
-# BitsAndBytes (quantization) parameters
+# The instruction dataset to use
+dataset_name = "mlabonne/guanaco-llama2-1k"
+
+# Fine-tuned model name
+new_model = "llama-2-7b-miniguanaco"
+
+# QLoRA parameters
+lora_r = 64  # LoRA attention dimension
+lora_alpha = 16  # Alpha parameter for LoRA scaling
+lora_dropout = 0.1  # Dropout probability for LoRA layers
+
+# bitsandbytes parameters
 use_4bit = True
-bnb_4bit_compute_dtype = "float16"  # Compute data type for 4-bit models
-bnb_4bit_quant_type = "nf4"        # Quantization type (fp4 or nf4)
-use_nested_quant = False           # Nested quantization for 4-bit models
+bnb_4bit_compute_dtype = "float16"
+bnb_4bit_quant_type = "nf4"
+use_nested_quant = False
 
-# Training related parameters
+# TrainingArguments parameters
 output_dir = "./results"
 num_train_epochs = 1
+fp16 = False
+bf16 = False
 per_device_train_batch_size = 4
+per_device_eval_batch_size = 4
 gradient_accumulation_steps = 1
-optim = "paged_adamw_32bit"
+gradient_checkpointing = True
+max_grad_norm = 0.3
 learning_rate = 2e-4
 weight_decay = 0.001
-max_grad_norm = 0.3
-max_steps = -1                  # Number of training steps (overrides num_train_epochs)
+optim = "paged_adamw_32bit"
+lr_scheduler_type = "constant"
+max_steps = -1
 warmup_ratio = 0.03
 group_by_length = True
 save_steps = 25
 logging_steps = 25
-fp16 = False
-bf16 = False
+
+# SFT parameters
 max_seq_length = None
-packing = False                # Pack multiple short examples in the same input sequence
-device_map = {"": 0}
+packing = False
+device_map = {"": [1]}  # Use only GPU device with ID 1
 
 # Load dataset
 dataset = load_dataset(dataset_name, split="train")
@@ -60,7 +67,7 @@ bnb_config = BitsAndBytesConfig(
     load_in_4bit=use_4bit,
     bnb_4bit_quant_type=bnb_4bit_quant_type,
     bnb_4bit_compute_dtype=compute_dtype,
-    bnb_4bit_use_double_quant=use_nested_quant
+    bnb_4bit_use_double_quant=use_nested_quant,
 )
 
 # Load base model
@@ -72,10 +79,10 @@ model = AutoModelForCausalLM.from_pretrained(
 model.config.use_cache = False
 model.config.pretraining_tp = 1
 
-# Load tokenizer
+# Load LLaMA tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
+tokenizer.padding_side = "right"  # Fix weird overflow issue with fp16 training
 
 # Load LoRA configuration
 peft_config = LoraConfig(
@@ -83,10 +90,10 @@ peft_config = LoraConfig(
     lora_dropout=lora_dropout,
     r=lora_r,
     bias="none",
-    task_type="CAUSAL_LM"
+    task_type="CAUSAL_LM",
 )
 
-# Define training arguments
+# Set training parameters
 training_arguments = TrainingArguments(
     output_dir=output_dir,
     num_train_epochs=num_train_epochs,
@@ -103,11 +110,11 @@ training_arguments = TrainingArguments(
     max_steps=max_steps,
     warmup_ratio=warmup_ratio,
     group_by_length=group_by_length,
-    lr_scheduler_type="constant",
+    lr_scheduler_type=lr_scheduler_type,
     report_to="tensorboard"
 )
 
-# Train model using SFTTrainer
+# Set supervised fine-tuning parameters
 trainer = SFTTrainer(
     model=model,
     train_dataset=dataset,
@@ -116,8 +123,11 @@ trainer = SFTTrainer(
     max_seq_length=max_seq_length,
     tokenizer=tokenizer,
     args=training_arguments,
-    packing=packing
+    packing=packing,
 )
 
+# Train model
 trainer.train()
+
+# Save trained model
 trainer.model.save_pretrained(new_model)
