@@ -3,10 +3,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 
 def generate_text(prompt):
-    # Set the path to the saved model
-    output_dir = "./results"
-    new_model = "llama-2-7b-miniguanaco"
-    model_save_path = os.path.join(output_dir, new_model)
+    # Set the absolute path to the saved model
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the current directory's absolute path
+    model_save_path = os.path.join(BASE_DIR, "results", "llama-2-7b-miniguanaco")
 
     # Load saved model and tokenizer from the local directory
     loaded_model = AutoModelForCausalLM.from_pretrained(model_save_path)
