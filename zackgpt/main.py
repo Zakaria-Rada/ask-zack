@@ -1,5 +1,6 @@
 import os
 import warnings
+import time
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 # Suppress all warnings
@@ -20,13 +21,21 @@ GENERATOR = pipeline("text-generation", model=MODEL, tokenizer=TOKENIZER)
 def generate_text(prompt):
     """Generate text using the pre-loaded model."""
     # Generate text using the provided prompt
-    output = GENERATOR(prompt, max_length=200, num_return_sequences=1)
+    output = GENERATOR(prompt, max_length=100, num_return_sequences=1)
     generated_text = output[0]['generated_text']
 
     # Remove the initial user's prompt from the generated text
     generated_text = generated_text[len(prompt):]
 
     return generated_text
+
+
+def print_real_time(text):
+    """Prints the text character by character to simulate real-time typing."""
+    for char in text:
+        print(char, end='', flush=True)
+        time.sleep(0.05)
+    print()
 
 
 if __name__ == "__main__":
@@ -40,4 +49,5 @@ if __name__ == "__main__":
 
         # Chatbot's response
         response = generate_text(user_prompt)
-        print("Bot:", response.strip())
+        print("Bot: ", end='')
+        print_real_time(response.strip())
