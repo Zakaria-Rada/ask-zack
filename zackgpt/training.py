@@ -5,34 +5,28 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
+    HfArgumentParser,
     TrainingArguments,
+    pipeline,
+    logging,
 )
-from peft import LoraConfig
+from peft import LoraConfig, PeftModel
 from trl import SFTTrainer
 
 # Configuration parameters
-
-# The model that you want to train from the Hugging Face hub
 model_name = "NousResearch/llama-2-7b-chat-hf"
-
-# The instruction dataset to use
 dataset_name = "mlabonne/guanaco-llama2-1k"
-
-# Fine-tuned model name
 new_model = "llama-2-7b-miniguanaco"
 
-# QLoRA parameters
-lora_r = 64  # LoRA attention dimension
-lora_alpha = 16  # Alpha parameter for LoRA scaling
-lora_dropout = 0.1  # Dropout probability for LoRA layers
+lora_r = 64
+lora_alpha = 16
+lora_dropout = 0.1
 
-# bitsandbytes parameters
 use_4bit = True
 bnb_4bit_compute_dtype = "float16"
 bnb_4bit_quant_type = "nf4"
 use_nested_quant = False
 
-# TrainingArguments parameters
 output_dir = "./results"
 num_train_epochs = 1
 fp16 = False
@@ -51,11 +45,11 @@ warmup_ratio = 0.03
 group_by_length = True
 save_steps = 25
 logging_steps = 25
-
-# SFT parameters
 max_seq_length = None
 packing = False
-device_map = {"": [1]}  # Use only GPU device with ID 1
+
+# Ensure we're using the correct GPU device
+device = torch.device("cuda:1")
 
 # Load dataset
 dataset = load_dataset(dataset_name, split="train")
@@ -73,16 +67,16 @@ bnb_config = BitsAndBytesConfig(
 # Load base model
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    quantization_config=bnb_config,
-    device_map=device_map
-)
+    quantization_config=bnb_config
+).to(device)  # Move model to GPU device 1
+
 model.config.use_cache = False
 model.config.pretraining_tp = 1
 
 # Load LLaMA tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"  # Fix weird overflow issue with fp16 training
+tokenizer.padding_side = "right"
 
 # Load LoRA configuration
 peft_config = LoraConfig(
