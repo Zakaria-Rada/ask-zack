@@ -21,7 +21,7 @@ GENERATOR = pipeline("text-generation", model=MODEL, tokenizer=TOKENIZER)
 def generate_text(prompt):
     """Generate text using the pre-loaded model."""
     # Generate text using the provided prompt
-    output = GENERATOR(prompt, max_length=100, num_return_sequences=1)
+    output = GENERATOR(prompt, max_length=1000, num_return_sequences=1)
     generated_text = output[0]['generated_text']
 
     # Remove the initial user's prompt from the generated text
