@@ -48,8 +48,8 @@ logging_steps = 25
 max_seq_length = None
 packing = False
 
-# Ensure we're using the correct GPU device
-device = torch.device("cuda:1")
+device = torch.device("cuda:1")  # Using GPU device 1
+torch.cuda.set_device(device)
 
 # Load dataset
 dataset = load_dataset(dataset_name, split="train")
@@ -68,7 +68,7 @@ bnb_config = BitsAndBytesConfig(
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     quantization_config=bnb_config
-).to(device)  # Move model to GPU device 1
+)
 
 model.config.use_cache = False
 model.config.pretraining_tp = 1
